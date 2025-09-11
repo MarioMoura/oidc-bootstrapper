@@ -365,6 +365,8 @@ key            = \"terraform.tfstate\"
 region         = \"$REGION\"" >$ENVIRONMENT.s3.tfbackend
 
 if [ "$BACKEND_DIR" ]; then
+	echo "Also generating backend file in: $BACKEND_DIR/$ENVIRONMENT.s3.tfbackend"
+	mkdir -p "$BACKEND_DIR"
 	echo "bucket = \"$RES_BUCKET\"
 dynamodb_table = \"$RES_TABLENAME\"
 key            = \"terraform.tfstate\"
@@ -372,6 +374,8 @@ region         = \"$REGION\"" >$BACKEND_DIR/$ENVIRONMENT.s3.tfbackend
 fi
 
 if [ "$TERRAFORM_DIR" ]; then
+	echo "Downloading sample Terraform files to $TERRAFORM_DIR..."
+	mkdir -p "$TERRAFORM_DIR"
 	curl -s "${GITHUB_URL}/sample_main.tf" -o "$TERRAFORM_DIR/main.tf"
 	curl -s "${GITHUB_URL}/sample_variables.tf" -o "$TERRAFORM_DIR/variables.tf"
 	>$TERRAFORM_DIR/$ENVIRONMENT.tfvars
