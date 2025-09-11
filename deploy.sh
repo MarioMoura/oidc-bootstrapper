@@ -358,19 +358,19 @@ RES_TARGET_ROLE="arn:aws:iam::${CURRENT_ACCOUNT}:role/$TARGETROLE"
 RES_BUCKET=$BUCKETNAME
 RES_TABLENAME=$TABLENAME
 
-echo "Generating backend configuration file: $ENVIRONMENT.s3.tfbackend"
-echo "bucket = \"$RES_BUCKET\"
-dynamodb_table = \"$RES_TABLENAME\"
-key            = \"terraform.tfstate\"
-region         = \"$REGION\"" >$ENVIRONMENT.s3.tfbackend
-
 if [ "$BACKEND_DIR" ]; then
-	echo "Also generating backend file in: $BACKEND_DIR/$ENVIRONMENT.s3.tfbackend"
+	echo "Generating backend configuration file: $BACKEND_DIR/$ENVIRONMENT.s3.tfbackend"
 	mkdir -p "$BACKEND_DIR"
 	echo "bucket = \"$RES_BUCKET\"
 dynamodb_table = \"$RES_TABLENAME\"
 key            = \"terraform.tfstate\"
 region         = \"$REGION\"" >$BACKEND_DIR/$ENVIRONMENT.s3.tfbackend
+else
+	echo "Generating backend configuration file: $ENVIRONMENT.s3.tfbackend"
+	echo "bucket = \"$RES_BUCKET\"
+dynamodb_table = \"$RES_TABLENAME\"
+key            = \"terraform.tfstate\"
+region         = \"$REGION\"" >$ENVIRONMENT.s3.tfbackend
 fi
 
 if [ "$TERRAFORM_DIR" ]; then
