@@ -22,6 +22,7 @@ Options:\n
 --template-version string \t Git tag/branch for template version (default: main).
 --dry-run \t Show what would be deployed without making changes.
 -y, --yes \t Skip confirmation prompt (useful when piping from curl).
+-w, --workflow \t Download sample GitHub Actions workflow to .github/workflows/terraform.yml.
 -h, --help\t Show this help message.\n
 Examples:\n
   # Deploy with AWS CLI (requires AWS access)
@@ -59,6 +60,7 @@ GITHUB_URL="https://raw.githubusercontent.com/MarioMoura/oidc-bootstrapper/refs/
 TEMPLATE_VERSION="main"
 DRY_RUN="false"
 SKIP_CONFIRM="false"
+WORKFLOW="false"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -120,6 +122,10 @@ while [[ $# -gt 0 ]]; do
 			;;
 		-y | --yes)
 			SKIP_CONFIRM="true"
+			shift
+			;;
+		-w | --workflow)
+			WORKFLOW="true"
 			shift
 			;;
 		*)
@@ -369,6 +375,13 @@ if [ "$TERRAFORM_DIR" ]; then
 	curl -s "${GITHUB_URL}/sample_main.tf" -o "$TERRAFORM_DIR/main.tf"
 	curl -s "${GITHUB_URL}/sample_variables.tf" -o "$TERRAFORM_DIR/variables.tf"
 	>$TERRAFORM_DIR/$ENVIRONMENT.tfvars
+fi
+
+if [ "$WORKFLOW" = "true" ]; then
+	echo "Downloading sample GitHub Actions workflow..."
+	mkdir -p .github/workflows
+	curl -s "${GITHUB_URL}/sample_workflow.yml" -o ".github/workflows/terraform.yml"
+	echo "GitHub Actions workflow installed at: .github/workflows/terraform.yml"
 fi
 # Replacing dashes for underscores in gh actions
 ENVIRONMENT=${ENVIRONMENT//-/_}
