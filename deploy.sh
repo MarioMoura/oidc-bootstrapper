@@ -383,9 +383,11 @@ fi
 
 if [ "$WORKFLOW" = "true" ]; then
 	echo "Downloading sample GitHub Actions workflow..."
-	mkdir -p .github/workflows
-	curl -s "${GITHUB_URL}/sample_workflow.yml" -o ".github/workflows/terraform.yml"
-	echo "GitHub Actions workflow installed at: .github/workflows/terraform.yml"
+	# Find git repository root
+	GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+	mkdir -p "$GIT_ROOT/.github/workflows"
+	curl -s "${GITHUB_URL}/sample_workflow.yml" -o "$GIT_ROOT/.github/workflows/terraform.yml"
+	echo "GitHub Actions workflow installed at: $GIT_ROOT/.github/workflows/terraform.yml"
 fi
 # Replacing dashes for underscores in gh actions
 ENVIRONMENT=${ENVIRONMENT//-/_}
