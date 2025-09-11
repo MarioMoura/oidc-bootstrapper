@@ -1,0 +1,61 @@
+name: 'Terraform'
+on:
+  push:
+    branches:
+      - production
+      - development
+      - staging
+jobs:
+  files-changed:
+    runs-on: ubuntu-latest
+    outputs:
+      terraform: ${{ steps.filter.outputs.terraform }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          base: ${{ github.ref_name }}
+          filters: |
+            terraform:
+              - 'terraform/**'
+              - '.github/workflows/terraform.yml'
+  terraform:
+    if: ${{ always() && needs.files-changed.outputs.terraform == 'true' }}
+    needs: files-changed
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      id-token: write
+      contents: read
+    environment: ${{ github.ref_name }}
+    defaults:
+      run:
+        working-directory: ./terraform
+        shell: bash
+    steps:
+      # Checkout the repository to the GitHub Actions runner
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+      # Check Terraform version
+      - name: Verify Terraform version
+        run: terraform --version
+      - id: login
+        uses: MarioMoura/oidc-bootstrapper@main
+        with:
+          oidc-conf: ${{ vars.OIDC_CONF }}
+      - name: Terraform Init
+        env:
+          TF_VAR_environment: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          terraform init -upgrade \
+            -backend-config="backend/${{ github.ref_name }}.s3.tfbackend"
+      - name: Terraform Apply
+        env:
+          TF_VAR_environment: ${{ github.ref_name }}
+        run: terraform apply --input=false -auto-approve -var="environment=${{ github.ref_name }}" -var-file="${{ github.ref_name }}.tfvars"

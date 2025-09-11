@@ -1,0 +1,25 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Creates a iam provider for OIDC usage, only one needed per account
+
+Parameters:
+  Thumbprint:
+    Description: 'Thumbprint for the giver host'
+    Type: String
+  OIDCDOMAIN:
+    Description: 'OICD url'
+    Type: String
+  Audience:
+    Description: 'OICD Audience'
+    Type: String
+
+Resources:
+  OIDC:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      ClientIdList:
+        - !Ref Audience
+      ThumbprintList:
+        - !Ref Thumbprint
+      Url: !Sub
+        - 'https://${DOMAIN}'
+        - DOMAIN: !Ref OIDCDOMAIN

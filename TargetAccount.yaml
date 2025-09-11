@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Creates a role with admin access for terraform usage
+
+Parameters:
+  AllowedBranch:
+    Type: String
+    Default: "*"
+  RepositoryName:
+    Description: 'Repository Name for OIDC'
+    Type: String
+  Audience:
+    Description: 'OICD Audience'
+    Type: String
+  OIDCDOMAIN:
+    Description: 'OICD url'
+    Type: String
+  TFStateBucketName:
+    Description: 'Terraform State Bucket Name'
+    Type: String
+    Default: template-tf-state
+  TFStateLockTableName:
+    Description: 'Terraform DDB Lock Table Name'
+    Type: String
+    Default: template-tf-lock
+  TargetRoleName:
+    Description: 'Terraform RoleName'
+    Type: String
+    Default: template-tf-role
+
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref TFStateBucketName
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'AES256'
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        -
+          AttributeName: "LockID"
+          AttributeType: "S"
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        -
+          AttributeName: "LockID"
+          KeyType: "HASH"
+      TableName: !Ref TFStateLockTableName
+  TFRole:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        RoleName: !Ref TargetRoleName
+        ManagedPolicyArns:
+          - "arn:aws:iam::aws:policy/AdministratorAccess"
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Federated: !Sub
+                    - "arn:aws:iam::${AWS::AccountId}:oidc-provider/${DOMAIN}"
+                    - DOMAIN: !Ref OIDCDOMAIN
+              Action:
+                - 'sts:AssumeRoleWithWebIdentity'
+              Condition:
+                StringEquals:
+                  token.actions.githubusercontent.com:aud: !Ref Audience
+                  token.actions.githubusercontent.com:sub: !Sub
+                                                           - "repo:${REPO}:environment:${BRANCH}"
+                                                           - REPO: !Ref RepositoryName
+                                                             BRANCH: !Ref AllowedBranch
+Outputs:
+  StateRole:
+    Description: Apply Role ARN
+    Value: !GetAtt TFRole.Arn
