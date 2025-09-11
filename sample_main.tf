@@ -5,12 +5,12 @@ output "account_id" {
   value = data.aws_caller_identity.current.account_id
 }
 output "region" {
-  value = data.aws_region.current.name
+  value = data.aws_region.current.region
 }
 
 locals {
   account_id = data.aws_caller_identity.current.account_id
-  region     = data.aws_region.current.name
+  region     = data.aws_region.current.region
 }
 
 terraform {
@@ -19,10 +19,8 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">=5.30.0"
+      version = "~> 6"
     }
   }
 }
-provider "aws" {
-  region = "us-west-2"
-}
+provider "aws" {}
