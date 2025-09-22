@@ -228,7 +228,6 @@ fi
 TARGETROLE="${INFRA_NAME,,}-${ENVIRONMENT}-terraform-target-role"
 
 BUCKETNAME="${INFRA_NAME,,}-${ENVIRONMENT}-tf-state"
-TABLENAME="${INFRA_NAME,,}-${ENVIRONMENT}-terraform-dblock"
 
 # Target Stack
 TARGET_TEMPLATE_HTTP="${TEMPLATE_S3_HTTP_URL}/TargetAccount.yaml"
@@ -281,7 +280,6 @@ if [ "$CONSOLE_URL" = "true" ]; then
 		"RepositoryName" "$REPONAME" \
 		"OIDCDOMAIN" "$HOST" \
 		"Audience" "$AUDIENCE" \
-		"TFStateLockTableName" "$TABLENAME" \
 		"TFStateBucketName" "$BUCKETNAME" \
 		"TargetRoleName" "$TARGETROLE")
 	echo "   $TARGET_URL"
@@ -294,7 +292,6 @@ if [ "$CONSOLE_URL" = "true" ]; then
 	echo "Repository: $REPONAME"
 	echo "Region: $REGION"
 	echo "Bucket Name: $BUCKETNAME"
-	echo "DynamoDB Table: $TABLENAME"
 	echo "IAM Role: $TARGETROLE"
 	echo
 	echo "After deployment, your role ARN will be:"
@@ -302,7 +299,7 @@ if [ "$CONSOLE_URL" = "true" ]; then
 	echo
 	echo "Backend configuration file content:"
 	echo "bucket = \"$BUCKETNAME\""
-	echo "dynamodb_table = \"$TABLENAME\""
+	echo "use_lockfile = true"
 	echo "key = \"terraform.tfstate\""
 	echo "region = \"$REGION\""
 
@@ -347,7 +344,6 @@ else
 	RepositoryName=$REPONAME \
 	OIDCDOMAIN="$HOST" \
 	Audience=$AUDIENCE \
-	TFStateLockTableName=$TABLENAME \
 	TFStateBucketName=$BUCKETNAME \
 	TargetRoleName=$TARGETROLE
 
@@ -361,21 +357,20 @@ fi
 # Generate backend configuration files for both modes
 RES_TARGET_ROLE="arn:aws:iam::${CURRENT_ACCOUNT}:role/$TARGETROLE"
 RES_BUCKET=$BUCKETNAME
-RES_TABLENAME=$TABLENAME
 
 if [ "$BACKEND_DIR" ]; then
 	echo "Generating backend configuration file: $BACKEND_DIR/$ENVIRONMENT.s3.tfbackend"
 	mkdir -p "$BACKEND_DIR"
 	echo "bucket = \"$RES_BUCKET\"
-dynamodb_table = \"$RES_TABLENAME\"
-key            = \"terraform.tfstate\"
-region         = \"$REGION\"" >$BACKEND_DIR/$ENVIRONMENT.s3.tfbackend
+use_lockfile = true
+key          = \"terraform.tfstate\"
+region       = \"$REGION\"" >$BACKEND_DIR/$ENVIRONMENT.s3.tfbackend
 else
 	echo "Generating backend configuration file: $ENVIRONMENT.s3.tfbackend"
 	echo "bucket = \"$RES_BUCKET\"
-dynamodb_table = \"$RES_TABLENAME\"
-key            = \"terraform.tfstate\"
-region         = \"$REGION\"" >$ENVIRONMENT.s3.tfbackend
+use_lockfile = true
+key          = \"terraform.tfstate\"
+region       = \"$REGION\"" >$ENVIRONMENT.s3.tfbackend
 fi
 
 if [ "$TERRAFORM_DIR" ]; then

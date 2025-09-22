@@ -8,8 +8,8 @@ This tool automates the setup of:
 - **OIDC Provider** for secure GitHub Actions authentication
 - **IAM Role** with environment and repository-specific permissions
 - **S3 Bucket** for Terraform state storage with versioning and encryption
-- **DynamoDB Table** for Terraform state locking
-- **Backend Configuration Files** for immediate Terraform use
+- **File-based State Locking** for safe concurrent operations
+- **Backend Configuration Files** for immediate Terraform use with file-based locking
 - **GitHub Actions Variables** for automated workflows
 
 ## Features
@@ -136,9 +136,6 @@ Deploy to different regions:
    - Name: `{prefix}-{environment}-tf-state`
    - Features: Versioning enabled, AES256 encryption
 
-4. **DynamoDB Table** (per environment)
-   - Name: `{prefix}-{environment}-terraform-dblock`
-   - Purpose: Terraform state locking
 
 ### Local Files Generated
 
