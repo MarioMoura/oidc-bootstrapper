@@ -15,6 +15,7 @@ Options:\n
 -g        \t Automatically set the Github Actions variable. Requires gh to be properly working.
 -t string \t Set the terraform directory. If specified, tfvars file will be created together with main.tf.
 -b string \t Set the terraform backend directory. If specified, backend files will be copied there.
+-v string \t Set the terraform vars directory. If specified, tfvars files will be created there.
 -p string \t Set the repository name.
 -i        \t Dont include the automatic detection and creation of the Github Provider.
 -u        \t Generate CloudFormation console URLs instead of deploying (no AWS CLI required).
@@ -74,6 +75,10 @@ while [[ $# -gt 0 ]]; do
 			;;
 		-b)
 			BACKEND_DIR="$2"
+			shift 2
+			;;
+		-v)
+			VARS_DIR="$2"
 			shift 2
 			;;
 		-r)
@@ -376,9 +381,26 @@ fi
 if [ "$TERRAFORM_DIR" ]; then
 	echo "Downloading sample Terraform files to $TERRAFORM_DIR..."
 	mkdir -p "$TERRAFORM_DIR"
-	curl -s "${GITHUB_URL}/sample_main.tf" -o "$TERRAFORM_DIR/main.tf"
-	curl -s "${GITHUB_URL}/sample_variables.tf" -o "$TERRAFORM_DIR/variables.tf"
-	>$TERRAFORM_DIR/$ENVIRONMENT.tfvars
+	if [ ! -f "$TERRAFORM_DIR/main.tf" ]; then
+		curl -s "${GITHUB_URL}/sample_main.tf" -o "$TERRAFORM_DIR/main.tf"
+	else
+		echo "File $TERRAFORM_DIR/main.tf already exists, skipping..."
+	fi
+	if [ ! -f "$TERRAFORM_DIR/variables.tf" ]; then
+		curl -s "${GITHUB_URL}/sample_variables.tf" -o "$TERRAFORM_DIR/variables.tf"
+	else
+		echo "File $TERRAFORM_DIR/variables.tf already exists, skipping..."
+	fi
+fi
+
+if [ "$VARS_DIR" ]; then
+	echo "Generating Terraform variables file: $VARS_DIR/$ENVIRONMENT.tfvars"
+	mkdir -p "$VARS_DIR"
+	if [ ! -f "$VARS_DIR/$ENVIRONMENT.tfvars" ]; then
+		>$VARS_DIR/$ENVIRONMENT.tfvars
+	else
+		echo "File $VARS_DIR/$ENVIRONMENT.tfvars already exists, skipping..."
+	fi
 fi
 
 if [ "$WORKFLOW" = "true" ]; then

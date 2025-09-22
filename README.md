@@ -75,6 +75,7 @@ chmod +x deploy.sh
 | `-g` | Auto-set GitHub Actions variables (Highly recommended) | `-g` |
 | `-t <dir>` | Download Terraform samples to directory | `-t ./terraform` |
 | `-b <dir>` | Copy backend files to directory | `-b ./terraform/backend` |
+| `-v <dir>` | Create tfvars files in directory | `-v ./terraform/vars` |
 | `-y` | Skip confirmation (useful for piping) | `-y` |
 | `-i` | Skip OIDC provider creation | `-i` |
 | `--template-version <tag>` | Use specific template version | `--template-version v1.0.0` |
@@ -97,7 +98,7 @@ Deploy infrastructure directly with GitHub integration:
 ```bash
 # Deploy with automatic GitHub variable setup
 curl -s https://raw.githubusercontent.com/MarioMoura/oidc-bootstrapper/main/deploy.sh | \
-  bash -s -- -y -r us-east-1 -e production -g -t ./terraform -b ./terraform/backend
+  bash -s -- -y -r us-east-1 -e production -g -t ./terraform -b ./terraform/backend -v ./terraform/vars
 ```
 
 ### Development Environment
@@ -143,6 +144,7 @@ Deploy to different regions:
 
 - **Backend Configuration**: `{environment}.s3.tfbackend`
 - **Terraform Samples**: `main.tf`, `variables.tf`, `{environment}.tfvars` (if `-t` used)
+- **Variables Files**: `{environment}.tfvars` (if `-v` used)
 
 ### GitHub Variables (if `-g` used)
 
