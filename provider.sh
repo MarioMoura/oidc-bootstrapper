@@ -26,14 +26,23 @@ THUMBPRINT=$(echo | openssl s_client -servername "$HOST" -showcerts -connect "$H
 # Target Stack
 TARGET_TEMPLATE_URL="https://raw.githubusercontent.com/MarioMoura/oidc-bootstrapper/refs/heads/main/GlobalProvider.yaml"
 NAME="github-OIDC-provider"
+
+# Download template temporarily
+echo "Downloading CloudFormation template..."
+TEMP_TEMPLATE="/tmp/GlobalProvider-${RANDOM}.yaml"
+curl -s "$TARGET_TEMPLATE_URL" -o "$TEMP_TEMPLATE"
+
 aws \
 	cloudformation deploy \
 	--stack-name "$NAME" \
 	--capabilities CAPABILITY_NAMED_IAM \
-	--template-url "$TARGET_TEMPLATE_URL" \
-	--parameter-overrides \
+	--template-file "$TEMP_TEMPLATE" \
 	--region "$REGION" \
+	--parameter-overrides \
 	OIDCDOMAIN="$HOST" \
-	Audience=$AUDIENCE\
+	Audience=$AUDIENCE \
 	Thumbprint="$THUMBPRINT"
+
+# Clean up temporary file
+rm -f "$TEMP_TEMPLATE"
 
